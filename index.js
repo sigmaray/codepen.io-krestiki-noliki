@@ -1,6 +1,6 @@
 // Math.floor(Math.random()*3)
 
-
+// arr_events нигде не используется
 var arr, /* arr_events = [], */ win_block, winner, again, winning, game;
 
 // Символ который будет рисоваться когда компьютер делает ход
@@ -10,8 +10,9 @@ var comp_sym = "o";
 var user_sym = "x";
 
 // Функция которая вызывается как только страница загрузилась
+// https://htmlbook.ru/html/attr/onload
 onload = function(){
-    // Присваиваем переменным ссылки на HTML элементы (они определены в index.html)
+    // Присваиваем переменным ссылки на HTML элементы (элементы определены в index.html)
     
     // <div id="game">
     // (элемент верхнего уровня который содержит весь интерфейс игры)
@@ -42,10 +43,10 @@ onload = function(){
         // Прячем цветной квадрат рисующийся поверх игрового поля
 		winning.style.display = "none";
 
-        // Прячем блок в котором будет написано кто выиграл и находится ссылка перезапуска игры
+        // Прячем блок в котором будет написано кто выиграл и в котором находится ссылка перезапуска игры
 		win_block.style.display = "none";
 
-        // Очистка. Убираем "o"/"x" из каждоя ячейки игрового поля
+        // Очистка игрового поля. Убираем "o"/"x" из каждой ячейки игрового поля
 		clearTable();
 
         // С вероятностью 50% компьтер сделает первый ход (поставит "o" в случайную клетку игрового поля)
@@ -56,7 +57,8 @@ onload = function(){
 	for(var i = 0; i < arr.length; i++){
 		arr[i].onclick = function(){
             // Рисуем "x" в клетке по которой щелкнул пользователь
-            // (в this элемент по которому был сделан щелчок мышью)
+            // В this находитcя элемент по которому был сделан щелчок мышью:
+            // https://learn.javascript.ru/introduction-browser-events#dostup-k-elementu-cherez-this
 			drawSym(this);
 		};
 
@@ -67,6 +69,7 @@ onload = function(){
 	randomMove();
 };
 
+// С вероятностью 50% компьтер сделает первый ход (поставит "o" в случайную клетку игрового поля)
 function randomMove(){
     // Случайно генерируем 0 или 1
 	var rnd = getRandomInt(2);
@@ -75,30 +78,33 @@ function randomMove(){
     // С вероятностью 50% первый ход делает компьютер.
     // Если нет, первым играет пользователь
 	if (rnd == 1) {
-		autoDrawing();
+		autoDrawing(); // Ход компьютера
 	}
 	return true;
 }
 
-// Функция рисуюшая символ (sym) в HTML-элементе (item) и определяющая есть ли победитель
-// Если кто-то выиграл (компьтер или пользователь), об этом будет показано сообщение
+// Рисуем символ (sym) в HTML-элементе (item) и определяем есть ли победитель
+// Если кто-то выиграл (компьтер или пользователь), выводим сообщение о выигрыше
 // Аргументы функции:
-// item - HTML-элемент
-// sym - символ который нужено нарисовать, значение по умолчанию - user_sym ("x")
+// item - HTML-элемент в котором должен быть нарисован символ
+// sym  - символ который нужено нарисовать.
+//        если при вызове функции аргумент не передаётся,
+//        будет использоваться значение по умолчанию - user_sym ("x")
 function drawSym(item, sym = user_sym){
 	// console.log(item);
 
-    // Если в клетке что-то уже есть, ничего не рисуем и возвращаем false
+    // Если в клетке что-то уже есть ("x" или "o"),
+    // ничего не рисуем и возвращаем false (рисовка не была выполнена)
 	if (item.hasChildNodes()) return false;
 
-    // Рисуем символ
+    // Рисуем символ в клетке ("x" или "o")
 	item.innerHTML = sym;
 	
     // Проверяем есть ли победитель
 	var winner = checkWinner();
 
 
-    // Если ход был сделан пользователь и нет победителя, копмьютер делает ход
+    // Если ход был сделан пользователем и нет победителя, компьютер делает ход
 	if (sym == user_sym && !winner)
 		autoDrawing(); // ход компьютера
 
@@ -119,7 +125,7 @@ function drawSym(item, sym = user_sym){
 		win_block.style.display = "block";
 	}
 
-    // Задача функции была выполнена, возвращаем true
+    // Задача функции была выполнена (символ был успешно нарисован), возвращаем true
 	return true;
 }
 
@@ -127,48 +133,62 @@ function drawSym(item, sym = user_sym){
 // Если выиграл пользователь, возвращается "x" (user_sym)
 // Если выиграл компьютер, возвращается "o" (comp_sym)
 function checkWinner(){
+    // Кто выиграл: "x" или "o" или "" (если нет победителя)
 	var winner = "";
+
+    // Множитель для вычисления координат строк
 	var j = 0;
 
 
+    // Ячейки по диагонали 1 (и левого верхнего угла в правый нижний)
 	var xy_1_1 = arr[0].innerHTML;
 	var xy_1_2 = arr[4].innerHTML;
 	var xy_1_3 = arr[8].innerHTML;
 
+    // Ячейки по диагонали 2 (и правого верхнего угла в левый нижний)
 	var xy_2_1 = arr[2].innerHTML;
 	var xy_2_2 = arr[4].innerHTML;
 	var xy_2_3 = arr[6].innerHTML;
 
+    // Если хотя бы одна диагональ заполнена
 	if ((xy_1_1 && xy_1_2 && xy_1_3) || (xy_2_1 && xy_2_2 && xy_2_3)) {
 
 		if (xy_1_1 == user_sym && xy_1_2 == user_sym && xy_1_3 == user_sym) {
+            // Если диагональ 1 заполнена клетками пользователя
 			winner = user_sym;
 		}
 		else if(xy_1_1 == comp_sym && xy_1_2 == comp_sym && xy_1_3 == comp_sym){
+            // Если диагональ 1 заполнена клетками компьютера
 			winner = comp_sym;
 		}
 
 
 		if (xy_2_1 == user_sym && xy_2_2 == user_sym && xy_2_3 == user_sym) {
+            // Если диагональ 2 заполнена клетками пользователя
 			winner = user_sym;
 		}
 		else if(xy_2_1 == comp_sym && xy_2_2 == comp_sym && xy_2_3 == comp_sym){
+            // Если диагональ 2 заполнена клетками компьютера
 			winner = comp_sym;
 		}
 	}
 
 
 
-
+    // Если при проверки диагоналей не был найден победитель проверяем другие места
+    // (строки и столбцы)
 	if (!winner){
 		for(var i = 0; i < 3; i++){
 
 			// alert(i);
 
+            // Выбираем столбец
 			var a1 = arr[i].innerHTML;
 			var a2 = arr[i + 3].innerHTML;
 			var a3 = arr[i + 6].innerHTML;
 
+            // Следующий три строчки кода делают бессмыслицу
+            // (эти значения не будут использованы и будут переопределены в коде ниже)
 			var b1 = arr[i].innerHTML;
 			var b2 = arr[i + 1].innerHTML;
 			var b3 = arr[i + 2].innerHTML;
@@ -177,10 +197,12 @@ function checkWinner(){
 			// console.log("b1 = '" + (b1) + "' b2 = '" + (b2) + "' b3 = '" + (b3) +"'");
 
 			if (a1 == user_sym && a2 == user_sym && a3 == user_sym) {
+                // Столбец заполнен клетками пользователя
 				winner = user_sym;
 				break;
 			}
 			else if(a1 == comp_sym && a2 == comp_sym && a3 == comp_sym){
+                // Столбец заполнен клетками компьютера
 				winner = comp_sym;
 				break;
 			}
@@ -188,18 +210,23 @@ function checkWinner(){
 
 			if (i != 0) j = 3*i;
 
+            // Выбираем строку
 			b1 = arr[j].innerHTML;
 			b2 = arr[j + 1].innerHTML;
 			b3 = arr[j + 2].innerHTML;
 
 			if (b1 == user_sym && b2 == user_sym && b3 == user_sym) {
+                // Строка заполнена клетками пользователя
 				winner = user_sym;
 				break;
 			}
 			else if(b1 == comp_sym && b2 == comp_sym && b3 == comp_sym){
+                // Строка заполнена клетками компьютера
 				winner = comp_sym;
 				break;
 			}
+
+			// Если мы определили победителя, не делаем больше проверок
 			if (winner) 
 				break;
 		}
@@ -227,19 +254,21 @@ function autoDrawing(){
     // Генерируем случайное число и много раз пытаемся нарисовать
     // символ в ячейке пока не получится (пока мы случайно не попадём в свободную ячейку)
 	do{
+		// Выбриаем случайное число от 0 до 8 включительно
 		rnd = getRandomInt(arr.length);
+		// Выбираем клетку игрового поля соответствующую этому числу
 		el = arr[rnd];
 		// console.log(rnd);
-	}while(!drawSym(el, comp_sym));
+	} while(!drawSym(el, comp_sym)); // бесконечно повторяем пока успешно не нарисуем (пока не попадём в пустую клетку)
 
     // Проверям остались ли свободные клетки
     // Если не осталось, функция рекурсивно вызывает саму себя и покажет сообщение о ничье
 	if (!ckeckFreeSpace()) {
-		autoDrawing();
+		autoDrawing(); // покажет сообщение и вернёт false ничего не рисуя
 	}
 }
 
-// Очистка. Убираем "o"/"x" из каждоя ячейки игрового поля
+// Очистка. Убираем "o"/"x" из каждой ячейки игрового поля
 function clearTable(){
 	for(var i = 0; i < arr.length; i++){
 		arr[i].innerHTML =  "";
@@ -251,10 +280,12 @@ function ckeckFreeSpace(){
 	var res = false;
 
 	for(var i = 0; i < arr.length; i++){
-        // Если в клетке есть дочерний элемент ("o" или "x") значит клетка не пуста
 		if (arr[i].hasChildNodes()){
+            // Если в клетке есть дочерний элемент ("o" или "x") значит клетка не пуста
 			res = false;
 		}else{
+            // Клетка пуста
+            // Возвращаем true и не проверяем больше
 			res = true;
 			break;
 		}
@@ -263,7 +294,7 @@ function ckeckFreeSpace(){
 	return res;
 }
 
-// Функция возвращаю случайное значение меньшее чем max
+// Функция возвращаю случайное число меньшее чем max
 function getRandomInt(max){
 	return Math.floor(Math.random() * max);
 }
@@ -273,7 +304,7 @@ function getRandomInt(max){
 
 
 
-
+// Не используется
 // function addHandler(el, ev, func ){
 // 	try{
 // 		el.addEventListener(ev, func, false);
@@ -283,7 +314,7 @@ function getRandomInt(max){
 // 	}
 // }
 
-
+// Не используется
 // function removerEvent(el, ev, func){
 // 	try{
 // 		el.removeEventListener(ev, func, false);
